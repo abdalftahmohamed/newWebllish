@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\NotificationDataResource;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -13,7 +15,8 @@ class AuthController extends Controller
 {
 
 
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
@@ -21,13 +24,14 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-        if (! $token = auth('api')->attempt($validator->validated())) {
+        if (!$token = auth('api')->attempt($validator->validated())) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         return $this->createNewToken($token);
     }
 
-    public function register(Request $request) {
+    public function register(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users',
@@ -47,39 +51,41 @@ class AuthController extends Controller
     }
 
 
-
-    public function update(UserRequest $request){
+    public function update(UserRequest $request)
+    {
 //return $request;
         $user = User::findOrFail($request->id);
-        if ($user){
-                $data['name']  =$request->name ? $request->name : $user->name;
-                $data['email'] = $request->email ? $request->email : $user->email;
+        if ($user) {
+            $data['name'] = $request->name ? $request->name : $user->name;
+            $data['email'] = $request->email ? $request->email : $user->email;
 //                $data['password'] = $request->password ? $request->password : $user->password;
-                $data['country'] = $request->country ? $request->country : $user->country;
-                $data['city'] = $request->city ? $request->city : $user->city;
-                $data['type'] = $request->type ? $request->type : $user->type;
-                $data['status'] = $request->status ? $request->status : $user->status;
-                $user->update($data);
-                return response()->json([
-                    'status'=>true,
-                    'data'=>$user,
-                    'message' => 'User Updated Successfully',
-                ]);
-        }else{
+            $data['country'] = $request->country ? $request->country : $user->country;
+            $data['city'] = $request->city ? $request->city : $user->city;
+            $data['type'] = $request->type ? $request->type : $user->type;
+            $data['status'] = $request->status ? $request->status : $user->status;
+            $user->update($data);
             return response()->json([
-                'status'=>false,
+                'status' => true,
+                'data' => $user,
+                'message' => 'User Updated Successfully',
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
                 'message' => 'this id not found please try again',
-            ],404);
+            ], 404);
         }
 
     }
-    protected function updateProfile(Request $request){
-        $id_user=auth('api')->user()->id;
+
+    protected function updateProfile(Request $request)
+    {
+        $id_user = auth('api')->user()->id;
 
         $user = User::find($id_user);
 
         $rules = [
-            "email" => "email|unique:users,email,".$id_user,
+            "email" => "email|unique:users,email," . $id_user,
             "password" => "string|confirmed|min:6",
             "country" => "string",
             "city" => "string",
@@ -96,7 +102,7 @@ class AuthController extends Controller
                     'status' => false,
                     'en' => 'Old Password Is Incorrect',
                     'ar' => 'كلمة المرور القديمة غير صحيحة',
-                ],502);
+                ], 502);
             }
             $user->password = bcrypt($request->input('password'));
         }
@@ -113,41 +119,48 @@ class AuthController extends Controller
             'ar' => 'تم تحديث الملف الشخصي بنجاح',
             'data' => $user,
 
-        ],201);
+        ], 201);
     }
-    public function userProfilebyid() {
-       $user=User::find(auth('api')->user()->id);
+
+    public function userProfilebyid()
+    {
+        $user = User::find(auth('api')->user()->id);
         return response()->json([
-        'message'=>'true',
-         'user'=> $user,
+            'message' => 'true',
+            'user' => $user,
         ]);
     }
-    public function logout() {
+
+    public function logout()
+    {
         auth('api')->logout();
         return response()->json(['message' => 'User successfully signed out']);
     }
 
 
-
-    public function refresh() {
+    public function refresh()
+    {
         return $this->createNewToken(auth('api')->refresh());
     }
 
 
-
-    public function usersProfile() {
+    public function usersProfile()
+    {
 //        dd('hghhh');
         return response()->json(auth('api')->user());
     }
 
 
-    public function allusers() {
+    public function allusers()
+    {
 
-        $users=User::all();
+        $users = User::all();
         return response()->json($users);
 
     }
-    protected function createNewToken($token){
+
+    protected function createNewToken($token)
+    {
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
@@ -159,28 +172,27 @@ class AuthController extends Controller
 
     public function destroy()
     {
-        $user=User::find(auth('api')->user()->id);
+        $user = auth('api')->user();
 
-        if ($user){
-            if ($user->type == null){
-
-                $user->delete();
-                return response()->json([
-                    'status'=>true,
-                    'message' => 'User deleted Successfully',
-                ]);
-            }else{
-                return response()->json([
-                    'status'=>false,
-                    'message' => 'This is Admin not deleted',
-                ],422);
-            }
-        }else{
+        if (!$user) {
             return response()->json([
-                'status'=>false,
+                'status' => false,
                 'message' => 'this id not found please try again',
-            ],404);
+            ], 404);
         }
+        if ($user->type === 'admin') {
+            return response()->json([
+                'status' => false,
+                'message' => 'This is Admin users cannot be deleted.',
+            ], 422);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User deleted successfully.',
+        ]);
     }
 
     public function showNotification()
@@ -198,10 +210,11 @@ class AuthController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'You are read All notification',
-            'data' =>  NotificationDataResource::collection($find->get()),
+            'data' => NotificationDataResource::collection($find->get()),
         ]);
 
     }
+
     public function readNotification()
     {
         $user = auth('api')->user();

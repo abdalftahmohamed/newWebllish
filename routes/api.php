@@ -45,7 +45,7 @@ Route::group(['middleware' => ['api', 'isAdmin']], function () {
     Route::get('usersProfile', [AuthController::class, 'usersProfile']);
     Route::get('userProfileById', [AuthController::class, 'userProfilebyid']);
     Route::post('update_user', [AuthController::class, 'update'])->middleware('RoleIsAdmin');
-    Route::post('delete', [AuthController::class, 'destroy']);
+    Route::delete('delete', [AuthController::class, 'destroy']);
     Route::post('updateProfile', [AuthController::class, 'updateProfile']);
     Route::post('password/email', [ForgotPasswordController::class, 'forgetPassword'])->withoutMiddleware('isAdmin');
     Route::post('password/reset', [ForgotPasswordController::class, 'resetPassword'])->withoutMiddleware('isAdmin');
