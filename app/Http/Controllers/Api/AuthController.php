@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\NotificationDataResource;
+use App\Models\DeviceToken;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -237,5 +238,44 @@ class AuthController extends Controller
 
     }
 
+
+    public function storeToken(Request $request)
+    {
+        $user = auth()->user();
+        $deviceTokens = DeviceToken::where('device_token', $request->device_token)->get();
+        if ($deviceTokens->isNotEmpty()) {
+            $deviceTokens->each(function ($deviceToken) {
+                $deviceToken->delete();
+            });
+        }
+        // Validation: Ensure required fields are present in the request.
+        $validator = Validator::make($request->all(), [
+            'device_token' => 'required',
+            'device' => 'nullable',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => [
+                    'en' => 'Validation failed',
+                    'ar' => 'Validation failed ar',
+                ],
+                'data' => $validator->errors(),
+            ], 422);
+        }
+        // Create a new device token record.
+        $user->deviceTokens()->create([
+            'device_token' => $request->device_token,
+            'device' => $request->device,
+        ]);
+//        }
+        return response()->json([
+            'message' => [
+                'en' => 'Token successfully created',
+                'ar' => 'تم حفظ التوكن بنجاح',
+            ]
+        ], 201);
+
+    }
 }
 

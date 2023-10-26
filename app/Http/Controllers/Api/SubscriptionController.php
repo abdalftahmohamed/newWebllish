@@ -9,6 +9,7 @@ use App\Models\Plan as ModelsPlan;
 use App\Models\Subscripe;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Notifications\PaymentNotification;
 use App\Traits\GeneralTrait;
 use Carbon\Carbon;
 use Exception;
@@ -103,6 +104,13 @@ class SubscriptionController extends Controller
             ]);
         }
         $user = User::find(auth('api')->user()->id);
+        $getUsers=User::where('id','!=', $user->id)->get();
+        if ($getUsers) {
+            foreach ($getUsers as $getUser) {
+                $getUser->notify(new PaymentNotification($user));
+            }
+        }
+
         $check_subscribe = Subscripe::where('user_id', $user->id);
         if ($check_subscribe) {
             $check_subscribe->update([

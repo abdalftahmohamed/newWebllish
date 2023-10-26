@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\api\LiveRequest;
 use App\Models\Live;
+use App\Models\User;
+use App\Notifications\LiveFirebaseNotification;
 use App\Traits\GeneralTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,7 +36,13 @@ class LiveController extends Controller
             $live->description = $request->description;
             $live->save();
 
-
+            $user = User::find(auth('api')->user()->id);
+            $getUsers=User::where('id','!=', $user->id)->get();
+            if ($getUsers) {
+                foreach ($getUsers as $getUser) {
+                    $getUser->notify(new LiveFirebaseNotification($user));
+                }
+            }
             return response()->json([
                 'message' => 'Live created successfully',
                 'client' => $live

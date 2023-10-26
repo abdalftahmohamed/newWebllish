@@ -72,4 +72,19 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(Subscripe::class)->where('status','active');
     }
+    public function Subscripes()
+    {
+        return $this->hasMany(Subscripe::class);
+    }
+
+    public function deviceTokens()
+    {
+        return $this->hasMany(DeviceToken::class,'user_id','id');
+    }
+
+    public function routeNotificationForFcm($notification = null)
+    {
+        return $this->deviceTokens()->where('user_id',$this->id)->pluck('device_token')->toArray();
+    }
+
 }

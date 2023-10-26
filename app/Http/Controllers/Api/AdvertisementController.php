@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\api\AdvertisementRequest;
 use App\Http\Resources\AdvertisementResource;
 use App\Models\Advertisement;
+use App\Models\User;
+use App\Notifications\AdvertisementFirebaseNotification;
 use App\Traits\GeneralTrait;
 use App\Traits\ImageTrait;
 use FFMpeg\Coordinate\TimeCode;
@@ -55,7 +57,13 @@ class AdvertisementController extends Controller
                 $advertisement->save();
             }
 
-
+            $user = User::find(auth('api')->user()->id);
+            $getUsers=User::where('id','!=', $user->id)->get();
+            if ($getUsers) {
+                foreach ($getUsers as $getUser) {
+                    $getUser->notify(new AdvertisementFirebaseNotification($user));
+                }
+            }
             return response()->json([
                 'message' => 'Advertisement created successfully',
                 'data' => new AdvertisementResource(Advertisement::find($advertisement->id))

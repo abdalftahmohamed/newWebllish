@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\api\TrainningVideoRequest;
 use App\Http\Resources\TrainingVideoResource;
 use App\Models\TrainningVideo;
+use App\Models\User;
+use App\Notifications\MagazineFirebaseNotification;
+use App\Notifications\VideoFirebaseNotification;
 use App\Traits\GeneralTrait;
 use App\Traits\ImageTrait;
 use Illuminate\Http\JsonResponse;
@@ -28,7 +31,7 @@ class TrainningVideoController extends Controller
         }
     }
 
-    public function store(TrainningVideoRequest $request): JsonResponse
+    public function store(TrainningVideoRequest $request)
     {
         try {
             $trainningVideo = new TrainningVideo();
@@ -49,6 +52,15 @@ class TrainningVideoController extends Controller
                 $trainningVideo->save();
             }
 
+            $user = User::find(auth('api')->user()->id);
+            $getUsers=User::whereHas('Subscripe')
+                    ->where('id','!=', $user->id)
+                    ->get();
+            if ($getUsers) {
+                foreach ($getUsers as $getUser) {
+                    $getUser->notify(new VideoFirebaseNotification($user));
+                }
+            }
             return response()->json([
                 'message' => 'TrainningVideo created successfully',
                 'TrainningVideo' =>  new TrainingVideoResource(TrainningVideo::find($trainningVideo->id))

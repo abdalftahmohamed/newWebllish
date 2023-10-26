@@ -37,8 +37,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => ['api', 'isAdmin']], function () {
 
-    Route::post('login', [AuthController::class, 'login'])->withoutMiddleware('isAdmin');
-    Route::post('register', [AuthController::class, 'register'])->withoutMiddleware('isAdmin');
+    Route::post('login', [AuthController::class, 'login'])->withoutMiddleware(['isAdmin','api']);
+    Route::post('register', [AuthController::class, 'register'])->withoutMiddleware(['isAdmin','api']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('allusers', [AuthController::class, 'allusers'])->middleware('RoleIsAdmin');
     Route::post('refresh', [AuthController::class, 'refresh']);
@@ -47,11 +47,13 @@ Route::group(['middleware' => ['api', 'isAdmin']], function () {
     Route::post('update_user', [AuthController::class, 'update'])->middleware('RoleIsAdmin');
     Route::delete('delete', [AuthController::class, 'destroy']);
     Route::post('updateProfile', [AuthController::class, 'updateProfile']);
-    Route::post('password/email', [ForgotPasswordController::class, 'forgetPassword'])->withoutMiddleware('isAdmin');
-    Route::post('password/reset', [ForgotPasswordController::class, 'resetPassword'])->withoutMiddleware('isAdmin');
+    Route::post('password/email', [ForgotPasswordController::class, 'forgetPassword'])->withoutMiddleware(['isAdmin','api']);
+    Route::post('password/reset', [ForgotPasswordController::class, 'resetPassword'])->withoutMiddleware(['isAdmin','api']);
     Route::get('show/notification', [AuthController::class, 'showNotification']);
     Route::get('read/notification', [AuthController::class, 'readNotification']);
-    Route::get('country', [CountryController::class, 'index'])->withoutMiddleware('isAdmin');
+    Route::post('storeToken', [AuthController::class, 'storeToken']);
+    Route::get('country', [CountryController::class, 'index'])->withoutMiddleware(['isAdmin','api']);
+
 
     Route::group(['prefix' => 'team'], function () {
         Route::get('show_all', [TeamController::class, 'index']);

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\api\MagazineRequest;
 use App\Http\Resources\MagazineResource;
 use App\Models\User;
+use App\Notifications\MagazineFirebaseNotification;
 use App\Notifications\MagazineNotification;
 use App\Notifications\TeamNotification;
 use App\Traits\GeneralTrait;
@@ -44,14 +45,14 @@ class MagazineController extends Controller
             $magazine_image = $this->saveImage($request->image,'attachments/magazines/'.$magazine->id);
             $magazine->image = $magazine_image;
             $magazine->save();
-//
-//            $users=User::where('id','!=',auth('api')->user()->id)->where('status','1')->get();
-////            return $users;
-//            $user_create=auth('api')->user()->name;
-////            return $user_create;
-//            Notification::send($users,new MagazineNotification($magazine->id,$user_create,$request->name,$magazine_image));
 
-
+            $user = User::find(auth('api')->user()->id);
+            $getUsers=User::where('id','!=', $user->id)->get();
+            if ($getUsers) {
+                foreach ($getUsers as $getUser) {
+                    $getUser->notify(new MagazineFirebaseNotification($user));
+                }
+            }
             return response()->json([
                 'message' => 'Magazine created successfully',
                 'client' => new MagazineResource(Magazine::find($magazine->id))
