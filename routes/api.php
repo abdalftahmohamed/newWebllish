@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\FeatureController;
 use App\Http\Controllers\Api\FollowUpPagesController;
 use App\Http\Controllers\Api\ForgotPasswordController;
+use App\Http\Controllers\Api\LinkController;
 use App\Http\Controllers\Api\LiveController;
 use App\Http\Controllers\Api\LiveFacebookController;
 use App\Http\Controllers\Api\LiveInstagramController;
@@ -198,6 +199,12 @@ Route::group(['middleware' => ['api', 'isAdmin']], function () {
         Route::post('update/{id}', [LiveLinkedinController::class, 'update']);
         Route::post('delete/{id}', [LiveLinkedinController::class, 'destroy']);
     });
-
+    Route::group(['prefix' => 'link'], function () {
+        Route::get('show_all', [LinkController::class, 'index']);
+        Route::post('save', [LinkController::class, 'store']);
+        Route::post('show/{id}', [LinkController::class, 'show']);
+        Route::post('update/{id}', [LinkController::class, 'update']);
+        Route::post('delete/{id}', [LinkController::class, 'destroy']);
+    });
 });
 

@@ -14,6 +14,5 @@ class FollowUpPages extends Model
         'instagram',
         'twitter',
         'linkedin',
-
     ];
 }
